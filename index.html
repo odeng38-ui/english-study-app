@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇺🇸 핵심 동사 100 마스터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Load Phosphor Icons for modern minimalist icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div>
+                <h1>Daily 핵심 동사 100</h1>
+                <p class="subtitle">네이티브처럼 말하는 완벽 가이드 🇺🇸</p>
+            </div>
+            <div class="progress-container">
+                <div class="progress-text">
+                    <span>진행도</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="nav-btn" id="prev-btn" disabled>
+                <i class="ph ph-caret-left"></i> 이전
+            </button>
+            <div class="day-selector">
+                <select id="day-select">
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+            <button class="nav-btn" id="next-btn">
+                다음 <i class="ph ph-caret-right"></i>
+            </button>
+        </div>
+
+        <!-- Main Card Area -->
+        <main class="card-area">
+            <div class="flashcard-container">
+                <div class="flashcard" id="flashcard">
+                    <!-- Front of the card -->
+                    <div class="card-face card-front">
+                        <div class="card-header">
+                            <span class="day-badge" id="front-day">DAY 1</span>
+                            <span class="chapter-badge" id="front-chapter">CHAPTER 1</span>
+                        </div>
+                        <div class="card-body">
+                            <h2 class="verb-title" id="front-verb">HAVE</h2>
+                            <p class="verb-full" id="front-verb-full">"소유하다 / 가지고 있다"</p>
+                        </div>
+                        <div class="card-footer">
+                            <p class="hint-text">카드를 탭하여 상세 내용을 확인하세요</p>
+                            <i class="ph ph-hand-tap tap-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Back of the card -->
+                    <div class="card-face card-back">
+                        <div class="card-header">
+                            <span class="day-badge" id="back-day">DAY 1</span>
+                            <div class="action-buttons">
+                                <button class="icon-btn tts-btn" id="tts-btn" title="예문 듣기">
+                                    <i class="ph ph-speaker-high"></i>
+                                </button>
+                                <button class="icon-btn check-btn" id="complete-btn" title="학습 완료">
+                                    <i class="ph ph-check-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-content-scroll">
+                            <div class="quote-box">
+                                <i class="ph-fill ph-quotes"></i>
+                                <p id="back-quote">Do you have any pets?</p>
+                            </div>
+                            
+                            <div class="meaning-box">
+                                <h3>핵심 의미</h3>
+                                <p id="back-explanation">무언가를 소유하거나 보유하고 있는 상태를 나타냅니다.</p>
+                            </div>
+                            
+                            <div class="examples-box">
+                                <h3>실전 예문</h3>
+                                <ul id="back-examples-list">
+                                    <!-- Examples populated by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer back-footer">
+                            <button class="flip-back-btn" id="flip-back-btn">
+                                <i class="ph ph-arrow-u-up-left"></i> 돌아가기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Data & Logic -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
