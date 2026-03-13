@@ -8,9 +8,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
     let currentIndex = 0; // index in vocabData array
     let completedDays = JSON.parse(localStorage.getItem('englishAppCompletedDays')) || [];
+    let userName = localStorage.getItem('englishAppUserName') || null;
+    let lastTestDate = parseInt(localStorage.getItem('englishAppLastTestDate')) || 0;
+    
+    // --- Test State ---
+    const TEST_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+    let testQuestions = [];
+    let currentTestIndex = 0;
+    let testScore = 0;
+    let wrongAnswers = [];
 
     // --- DOM Elements ---
     const elements = {
+        // User & Modals
+        loginModal: document.getElementById('login-modal'),
+        usernameInput: document.getElementById('username-input'),
+        startLearningBtn: document.getElementById('start-learning-btn'),
+        userProfile: document.getElementById('user-profile'),
+        userNameDisplay: document.getElementById('user-name-display'),
+        
+        testModal: document.getElementById('test-modal'),
+        testResultModal: document.getElementById('test-result-modal'),
+        
         // Progress
         progressPercentage: document.getElementById('progress-percentage'),
         progressFill: document.getElementById('progress-fill'),
@@ -37,24 +56,57 @@ document.addEventListener('DOMContentLoaded', () => {
         backDay: document.getElementById('back-day'),
         backQuote: document.getElementById('back-quote'),
         backExplanation: document.getElementById('back-explanation'),
-        backExamplesList: document.getElementById('back-examples-list')
+        backExamplesList: document.getElementById('back-examples-list'),
+        
+        // Test Elements
+        currentQuestionNum: document.getElementById('current-question-num'),
+        totalQuestionNum: document.getElementById('total-question-num'),
+        testQuestion: document.getElementById('test-question'),
+        testOptions: document.getElementById('test-options'),
+        testScore: document.getElementById('test-score'),
+        testFeedback: document.getElementById('test-feedback'),
+        wrongAnswersSection: document.getElementById('wrong-answers-section'),
+        wrongAnswersList: document.getElementById('wrong-answers-list'),
+        finishTestBtn: document.getElementById('finish-test-btn')
     };
 
     // --- Initialization ---
-    initDaySelector();
-    updateProgress();
-    
-    // Find first incomplete day or start from 0
-    let startIndex = 0;
-    while(startIndex < vocabData.length && completedDays.includes(vocabData[startIndex].day)) {
-        startIndex++;
+    initApp();
+
+    function initApp() {
+        initDaySelector();
+        updateProgress();
+        
+        if (!userName) {
+            // Show login
+            elements.loginModal.style.display = 'flex';
+        } else {
+            // User exists, setup UI and check test
+            elements.loginModal.style.display = 'none';
+            elements.userProfile.style.display = 'flex';
+            elements.userNameDisplay.textContent = userName;
+            
+            checkAndStartTest();
+        }
+        
+        // Find first incomplete day or start from 0
+        let startIndex = 0;
+        while(startIndex < vocabData.length && completedDays.includes(vocabData[startIndex].day)) {
+            startIndex++;
+        }
+        // If all completed, start at 0
+        if (startIndex >= vocabData.length) startIndex = 0;
+        
+        loadCard(startIndex);
     }
-    // If all completed, start at 0
-    if (startIndex >= vocabData.length) startIndex = 0;
-    
-    loadCard(startIndex);
 
     // --- Event Listeners ---
+    
+    // Login
+    elements.startLearningBtn.addEventListener('click', handleLogin);
+    elements.usernameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
     
     // Flip Card Logic
     // Allow clicking anywhere on the front to flip
@@ -102,6 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard support
     document.addEventListener('keydown', (e) => {
+        if (elements.loginModal.style.display !== 'none' || 
+            elements.testModal.style.display !== 'none' || 
+            elements.testResultModal.style.display !== 'none') {
+            return; // Disable keyboard nav during modals
+        }
+        
         if (e.key === 'ArrowRight') {
             elements.nextBtn.click();
         } else if (e.key === 'ArrowLeft') {
@@ -116,7 +174,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Test specific
+    elements.finishTestBtn.addEventListener('click', () => {
+        elements.testResultModal.style.display = 'none';
+        lastTestDate = Date.now();
+        localStorage.setItem('englishAppLastTestDate', lastTestDate);
+    });
+
     // --- Functions ---
+    
+    function handleLogin() {
+        const name = elements.usernameInput.value.trim();
+        if (name) {
+            userName = name;
+            localStorage.setItem('englishAppUserName', userName);
+            
+            // Set initial test date to now, so first test is 3 days from login
+            if (!lastTestDate) {
+                lastTestDate = Date.now();
+                localStorage.setItem('englishAppLastTestDate', lastTestDate);
+            }
+            
+            elements.loginModal.style.display = 'none';
+            elements.userProfile.style.display = 'flex';
+            elements.userNameDisplay.textContent = userName;
+        } else {
+            alert('이름을 입력해주세요.');
+        }
+    }
     
     function initDaySelector() {
         vocabData.forEach((item, index) => {
@@ -238,6 +323,134 @@ document.addEventListener('DOMContentLoaded', () => {
 
         speechSynthesis.cancel(); // Stop any currently playing
         speechSynthesis.speak(utterance);
+    }
+    
+    // --- Test Features ---
+    function checkAndStartTest() {
+        if (completedDays.length < 5) return; // Need at least 5 words to test
+        
+        const now = Date.now();
+        if (!lastTestDate) {
+             lastTestDate = now;
+             localStorage.setItem('englishAppLastTestDate', lastTestDate);
+             return;
+        }
+        
+        // DEV OVERRIDE (For manual verification, uncomment line below to force test)
+         // lastTestDate = now - TEST_INTERVAL_MS - 1000;
+        
+        if (now - lastTestDate >= TEST_INTERVAL_MS) {
+            startTest();
+        }
+    }
+    
+    function startTest() {
+        // Select 10 random words from completed or all vocab if not enough completed
+        let pool = vocabData.filter(v => completedDays.includes(v.day));
+        if (pool.length < 10) pool = [...vocabData]; // fallback
+        
+        // Shuffle and pick 10
+        const shuffled = pool.sort(() => 0.5 - Math.random());
+        const selectedForTest = shuffled.slice(0, Math.min(10, shuffled.length));
+        
+        testQuestions = selectedForTest.map(item => {
+            // Generate 3 wrong options
+            const otherVerbs = vocabData.filter(v => v.verb !== item.verb).map(v => v.verb);
+            const wrongOptions = otherVerbs.sort(() => 0.5 - Math.random()).slice(0, 3);
+            const options = [...wrongOptions, item.verb].sort(() => 0.5 - Math.random());
+            
+            return {
+                question: item.korean_meaning,
+                answer: item.verb,
+                options: options,
+                day: item.day
+            };
+        });
+        
+        currentTestIndex = 0;
+        testScore = 0;
+        wrongAnswers = [];
+        
+        elements.totalQuestionNum.textContent = testQuestions.length;
+        elements.testModal.style.display = 'flex';
+        loadTestQuestion();
+    }
+    
+    function loadTestQuestion() {
+        const q = testQuestions[currentTestIndex];
+        elements.currentQuestionNum.textContent = currentTestIndex + 1;
+        elements.testQuestion.innerHTML = `다음 중 <strong>"${q.question}"</strong>의 뜻을 가진 동사는?`;
+        
+        elements.testOptions.innerHTML = '';
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.toUpperCase();
+            btn.onclick = () => handleTestAnswer(btn, opt === q.answer, q);
+            elements.testOptions.appendChild(btn);
+        });
+    }
+    
+    function handleTestAnswer(btn, isCorrect, questionData) {
+        // Disable all buttons immediately
+        const allBtns = elements.testOptions.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+        
+        if (isCorrect) {
+            btn.classList.add('correct');
+            testScore++;
+        } else {
+            btn.classList.add('wrong');
+            wrongAnswers.push(questionData);
+            // Highlight correct one
+            allBtns.forEach(b => {
+                 if (b.textContent === questionData.answer.toUpperCase()) {
+                     b.classList.add('correct');
+                 }
+            });
+        }
+        
+        setTimeout(() => {
+            currentTestIndex++;
+            if (currentTestIndex < testQuestions.length) {
+                loadTestQuestion();
+            } else {
+                finishTest();
+            }
+        }, 1000);
+    }
+    
+    function finishTest() {
+        elements.testModal.style.display = 'none';
+        
+        const finalScore = Math.round((testScore / testQuestions.length) * 100);
+        elements.testScore.textContent = finalScore;
+        
+        if (finalScore === 100) {
+            elements.testFeedback.textContent = "완벽합니다! 학습을 아주 잘하고 계시네요. 🎉";
+            elements.testFeedback.style.color = "var(--success)";
+            elements.wrongAnswersSection.style.display = 'none';
+        } else if (finalScore >= 70) {
+            elements.testFeedback.textContent = "훌륭해요! 조금만 더 복습하면 완벽하겠어요. 👍";
+            elements.testFeedback.style.color = "var(--primary)";
+        } else {
+            elements.testFeedback.textContent = "복습이 조금 더 필요해보이네요. 할 수 있어요! 💪";
+            elements.testFeedback.style.color = "var(--secondary)";
+        }
+        
+        if (wrongAnswers.length > 0) {
+            elements.wrongAnswersList.innerHTML = '';
+            wrongAnswers.forEach(wa => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${wa.answer.toUpperCase()}</strong>: ${wa.question} (Day ${wa.day})`;
+                elements.wrongAnswersList.appendChild(li);
+            });
+            elements.wrongAnswersSection.style.display = 'block';
+        } else {
+            elements.wrongAnswersSection.style.display = 'none';
+        }
+        
+        elements.testResultModal.style.display = 'flex';
     }
     
     // Pre-load voices for TTS

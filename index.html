@@ -17,13 +17,21 @@
                 <h1>Daily 핵심 동사 100</h1>
                 <p class="subtitle">네이티브처럼 말하는 완벽 가이드 🇺🇸</p>
             </div>
-            <div class="progress-container">
-                <div class="progress-text">
-                    <span>진행도</span>
-                    <span id="progress-percentage">0%</span>
+            
+            <div class="header-right">
+                <div class="user-profile" id="user-profile" style="display: none;">
+                    <i class="ph ph-user-circle"></i>
+                    <span id="user-name-display">사용자</span>님
                 </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progress-fill"></div>
+                
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>진행도</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -105,6 +113,63 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-content login-modal">
+            <div class="login-header">
+                <h2>환영합니다! 👋</h2>
+                <p>학습을 시작하기 위해 이름을 입력해주세요.</p>
+            </div>
+            <div class="login-body">
+                <input type="text" id="username-input" class="modern-input" placeholder="이름 또는 닉네임" autocomplete="off" maxlength="15">
+                <button class="primary-btn" id="start-learning-btn">시작하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Day Test Modal -->
+    <div class="modal-overlay" id="test-modal" style="display: none;">
+        <div class="modal-content test-modal">
+            <div class="test-header">
+                <h2>📝 3일 주기 복습 테스트</h2>
+                <p class="test-progress"><span id="current-question-num">1</span> / <span id="total-question-num">10</span></p>
+            </div>
+            <div class="test-body">
+                <div class="question-box">
+                    <p id="test-question">다음 중 <strong>"소유하다 / 가지고 있다"</strong>의 뜻을 가진 동사는?</p>
+                </div>
+                <div class="options-grid" id="test-options">
+                    <button class="option-btn">HAVE</button>
+                    <button class="option-btn">GET</button>
+                    <button class="option-btn">TAKE</button>
+                    <button class="option-btn">MAKE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Result Modal -->
+    <div class="modal-overlay" id="test-result-modal" style="display: none;">
+        <div class="modal-content result-modal">
+            <div class="result-header">
+                <h2>🎉 테스트 완료!</h2>
+            </div>
+            <div class="result-body">
+                <div class="score-display">
+                    <span id="test-score">100</span>점
+                </div>
+                <p id="test-feedback">완벽합니다! 학습을 아주 잘하고 계시네요.</p>
+                <div class="wrong-answers-section" id="wrong-answers-section" style="display: none;">
+                    <h3>오답 노트</h3>
+                    <ul id="wrong-answers-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+                <button class="primary-btn" id="finish-test-btn">학습 화면으로 돌아가기</button>
+            </div>
+        </div>
     </div>
 
     <!-- Data & Logic -->
