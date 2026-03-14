@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         testModal: document.getElementById('test-modal'),
         testResultModal: document.getElementById('test-result-modal'),
+        manualTestBtn: document.getElementById('manual-test-btn'),
         
         // Progress
         progressPercentage: document.getElementById('progress-percentage'),
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.loginModal.style.display = 'none';
             elements.userProfile.style.display = 'flex';
             elements.userNameDisplay.textContent = userName;
+            elements.manualTestBtn.style.display = 'flex';
             
             checkAndStartTest();
         }
@@ -175,6 +177,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Test specific
+    if (elements.manualTestBtn) {
+        elements.manualTestBtn.addEventListener('click', () => {
+            if (completedDays.length < 5) {
+                alert('테스트를 진행하려면 최소 5개의 단어를 학습 완료해야 합니다.');
+                return;
+            }
+            startTest();
+        });
+    }
+
     elements.finishTestBtn.addEventListener('click', () => {
         elements.testResultModal.style.display = 'none';
         lastTestDate = Date.now();
@@ -198,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.loginModal.style.display = 'none';
             elements.userProfile.style.display = 'flex';
             elements.userNameDisplay.textContent = userName;
+            elements.manualTestBtn.style.display = 'flex';
         } else {
             alert('이름을 입력해주세요.');
         }
